@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 
@@ -128,7 +129,7 @@ func main(){
 	cfg.Passwd = os.Getenv("DBPASS")  //- if you have
 	cfg.Net ="tcp"
 	cfg.Addr = "127.0.0.1:3306"
-	cfg.DBName = "spring"	// dbname 
+	cfg.DBName = "v1"	// dbname 
 
 	// get a database handle.
 	// var err error
@@ -144,8 +145,6 @@ func main(){
 	fmt.Printf(("Connected!\n"))
 
 
-
-
 	// db, err := sql.Open("mysql","user:root@/v1")
 	// if err != nil{
 	// 	panic(err)
@@ -155,14 +154,43 @@ func main(){
 	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(10)
 
+	// check DB connections
+	// locations, err := getAlllocations(1)
+	// if err!= nil {
+	// 	log.Fatal(err)
+	// }
+	// fmt.Printf("locations %v\n",locations)
 
-	locations, err := getAlllocations(1)
-	if err!= nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("locations %v\n",locations)
+
+	createSwiftCodesTable(db)
 
 }
+
+func createSwiftCodesTable(db *sql.DB){
+	createTableQuery := `
+		CREATE TABLE IF NOT EXISTS swift_codes(
+			id INT AUTO_INCREMENT PRIMARY KEY,
+			countryiso2code VARCHAR(255) NOT NULL,
+			swiftcode VARCHAR(255) UNIQUE NOT NULL,
+			codetype VARCHAR(255),
+			name VARCHAR(255),
+			address VARCHAR(255),
+			townname VARCHAR(255),
+			countryname VARCHAR(255),
+			timezone VARCHAR(255)
+		);
+	`
+	ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancelfunc()
+	_, err := db.ExecContext(ctx,createTableQuery)
+	if err != nil{
+		log.Fatalf("Error creating table :%v",err)
+	}
+
+	fmt.Println("Table 'users' created successfully (if it didn't exist).")
+}
+
+
 
 func getAlllocations(id float64)([]Location,error){
 	var locations []Location
