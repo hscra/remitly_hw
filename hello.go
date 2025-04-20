@@ -63,7 +63,6 @@ func main(){
 
 		fmt.Printf("%+v\n",rec)
 	}
-
 	// Reset the file reader
 	if _, err := f.Seek(0, io.SeekStart); err != nil {
 		panic(err)
@@ -81,6 +80,9 @@ func main(){
 		panic(err)
 	}
 
+	// fmt.Printf("parsed? %+s\n",swiftcodes);
+
+	/*Check duplicate and remove it*/
 	var lineExistMap = make(map[string]bool)
 	// var duplicate string 
 	// Print out the parsed data
@@ -100,6 +102,7 @@ func main(){
 		panic(err)
 	}
 
+	// Another method to readCSV
 	now := time.Now()
 	readChannel := make(chan SwiftcodeData, 1)
 	readFilePath := "swiftcode.csv"
@@ -113,10 +116,10 @@ func main(){
 
 	cnt :=0
 
-	for r:= range readChannel{
-		fmt.Println(r)
-		cnt++
-	}
+	// for r:= range readChannel{
+	// 	fmt.Println(r)
+	// 	cnt++
+	// }
 	fmt.Println(time.Since(now),cnt)
 
 	// import mysql driver
@@ -126,7 +129,7 @@ func main(){
 
 	cfg := mysql.NewConfig()
 	cfg.User = os.Getenv("DBUSER")
-	cfg.Passwd = os.Getenv("DBPASS")  //- if you have
+	cfg.Passwd = os.Getenv("DBPASS")  
 	cfg.Net ="tcp"
 	cfg.Addr = "127.0.0.1:3306"
 	cfg.DBName = "v1"	// dbname 
@@ -163,8 +166,56 @@ func main(){
 
 
 	createSwiftCodesTable(db)
-
+	for _,swiftcode := range swiftcodes {
+		insertSwiftCodes(db,*swiftcode)
+		// fmt.Printf("check %v", swiftcode)
+	}
 }
+
+func insertSwiftCodes(db *sql.DB,sc SwiftcodeData ){
+	query :=`
+	INSERT INTO swift_codes (
+		countryiso2code,
+		swiftcode,
+		codetype,
+		name,
+		address,
+		townname,
+		countryname,
+		timezone
+		)
+		VALUES (?,?,?,?,?,?,?,?)
+	`
+
+	ctx, cancelfunc := context.WithTimeout(context.Background(),5*time.Second)
+	defer cancelfunc()
+	stmt, err := db.PrepareContext(ctx, query)
+	if err != nil {
+		log.Fatalf("Error %s when preparing SQL query\n", err)
+	}
+	defer stmt.Close()
+
+	res, err  := stmt.ExecContext(
+		ctx, 
+		sc.CountryIso2Code,
+		sc.SwiftCode,
+		sc.CodeType,
+		sc.Name,
+		sc.Address,
+		sc.TownName,
+		sc.CountryName,
+		sc.TimeZone,
+	)
+	if err != nil {
+		log.Fatalf("Error %s when inserting row into table\n",err)
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		log.Fatalf("Error %s when finding rows affected\n",err)
+	}
+	log.Printf("%d swiftcodes created\n",rows)
+}
+
 
 func createSwiftCodesTable(db *sql.DB){
 	createTableQuery := `
@@ -187,7 +238,7 @@ func createSwiftCodesTable(db *sql.DB){
 		log.Fatalf("Error creating table :%v",err)
 	}
 
-	fmt.Println("Table 'users' created successfully (if it didn't exist).")
+	fmt.Println("Table 'swift_codes' created successfully (if it didn't exist).")
 }
 
 
@@ -215,7 +266,6 @@ func getAlllocations(id float64)([]Location,error){
 	}
 	return locations, nil 
 }
-
 
 
 func readFromCSV(file *os.File, c chan SwiftcodeData ){
