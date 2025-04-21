@@ -149,7 +149,10 @@ func main() {
 	// db function, handler function seperate it.
 	swiftcodeHandler := handlers.SwiftCodeHandler(db)
 	router := gin.Default()
+
 	router.GET("/v1/swift_codes/:swiftcode", swiftcodeHandler.GetDetailsOfSingleSwiftcode)
+	router.GET("/v1/swift_codes/country/:countryiso2code", swiftcodeHandler.ReturnAllSwiftCodesCountry)
+
 	router.Run("localhost:8080")
 
 }

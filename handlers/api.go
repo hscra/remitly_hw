@@ -13,7 +13,7 @@ type DbHandler struct {
 	DB *sql.DB
 }
 
-type SwiftCodeData struct {
+type SwiftCodeData struct { // for Endpoint 1
 	Address         string          `json:"address"`
 	Name            string          `json:"bankName"`
 	Countryiso2code string          `json:"countryISO2"`
@@ -21,6 +21,20 @@ type SwiftCodeData struct {
 	IsHeadquarter   bool            `json:"isHeadquarter"`
 	Swiftcode       string          `json:"siwftCode"`
 	Branches        []SwiftCodeData `json:"branches,omitempty"`
+}
+
+type SwiftCodeSummary struct { // for Endpoint 2
+	Address         string `json:"address"`
+	BankName        string `json:"bankName"`
+	Countryios2code string `json:"countryISO2"`
+	IsHeadquarter   bool   `json:"isHeadquarter"`
+	SwiftCode       string `json:"swiftCode"`
+}
+
+type CountryResponse struct { // for Endpoint 2
+	Countryiso2code string             `json:"countryISO2"`
+	Countryname     string             `json:"countryName"`
+	Swiftcodes      []SwiftCodeSummary `json:"swiftCodes,omitempty"`
 }
 
 func SwiftCodeHandler(db *sql.DB) *DbHandler {
@@ -99,7 +113,60 @@ func (h *DbHandler) GetDetailsOfSingleSwiftcode(c *gin.Context) {
 			"isHeadquarter": false,
 			"siwftCode":     sc.Swiftcode,
 		})
+	}
+}
+
+func (h *DbHandler) ReturnAllSwiftCodesCountry(c *gin.Context) {
+	fmt.Println("***REQUEST RECEIVED***")
+	countryISO2code := c.Param("countryiso2code")
+
+	var sc SwiftCodeSummary
+	// var country CountryResponse
+	var swiftcodes []SwiftCodeSummary
+
+	// Query row with matching countryISO2code
+	rows, err := h.DB.Query("SELECT countryiso2code, countryname, swiftcode, address, name FROM swift_codes WHERE countryiso2code=?", countryISO2code)
+	if err != nil {
+		fmt.Printf("Database error for swift_codes :%v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
+	}
+
+	defer rows.Close()
+
+	countryResponse := CountryResponse{
+		Countryiso2code: countryISO2code,
+		Countryname:     "",
+	}
+
+	for rows.Next() {
+		var countryName string
+
+		if err := rows.Scan(&sc.Countryios2code, &countryName, &sc.SwiftCode, &sc.Address, &sc.BankName); err != nil {
+			fmt.Printf("Error scanning row :%v", err)
+			continue
+		}
+
+		if countryResponse.Countryname == "" {
+			countryResponse.Countryname = countryName
+		}
+
+		sc.IsHeadquarter = false
+
+		if strings.Contains(sc.SwiftCode, "XXX") {
+			sc.IsHeadquarter = true
+		}
+
+		swiftcodes = append(swiftcodes, sc)
 
 	}
+
+	countryResponse.Swiftcodes = swiftcodes
+
+	if err := rows.Err(); err != nil {
+		fmt.Printf("Error to scanning rows : %v", err)
+	}
+
+	c.JSON(http.StatusOK, countryResponse)
 
 }
