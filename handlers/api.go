@@ -13,7 +13,7 @@ type DbHandler struct {
 	DB *sql.DB
 }
 
-type SwiftCodeData struct { // for Endpoint 1
+type SwiftCodeData struct { // for Endpoint 1,2,3,4
 	Address         string          `json:"address"`
 	Name            string          `json:"bankName"`
 	Countryiso2code string          `json:"countryISO2"`
@@ -35,6 +35,15 @@ type CountryResponse struct { // for Endpoint 2
 	Countryiso2code string             `json:"countryISO2"`
 	Countryname     string             `json:"countryName"`
 	Swiftcodes      []SwiftCodeSummary `json:"swiftCodes,omitempty"`
+}
+
+type NewSwiftCode struct { // for Endopoint POST 3
+	Address       string `json:"address"`
+	BankName      string `json:"bankName"`
+	CountryISO2   string `json:"countryISO2"`
+	CountryName   string `json:"countryName"`
+	IsHeadquarter bool   `json:"isHeadquarter"`
+	SwiftCode     string `json:"swiftCode"`
 }
 
 func SwiftCodeHandler(db *sql.DB) *DbHandler {
@@ -121,7 +130,6 @@ func (h *DbHandler) ReturnAllSwiftCodesCountry(c *gin.Context) {
 	countryISO2code := c.Param("countryiso2code")
 
 	var sc SwiftCodeSummary
-	// var country CountryResponse
 	var swiftcodes []SwiftCodeSummary
 
 	// Query row with matching countryISO2code
@@ -168,5 +176,74 @@ func (h *DbHandler) ReturnAllSwiftCodesCountry(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, countryResponse)
+
+}
+
+func (h *DbHandler) AddSwiftCodeToCountry(c *gin.Context) {
+	fmt.Println("***REQUEST RECEIVED***")
+	var newSwiftCode NewSwiftCode
+
+	if err := c.BindJSON(&newSwiftCode); err != nil {
+		fmt.Printf("BindJSON error for swifr code")
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON format"})
+		return
+	}
+
+	// Query row with matching swiftcode
+	result, err := h.DB.Exec("INSERT INTO swift_codes(address,name,countryiso2code,countryname,swiftcode) VALUES (?,?,?,?,?) ",
+		newSwiftCode.Address, newSwiftCode.BankName, newSwiftCode.CountryISO2, newSwiftCode.CountryName, newSwiftCode.SwiftCode)
+
+	if err != nil {
+		fmt.Printf("Database error for swift_codes :%v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		fmt.Printf("Error getting rows affected: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
+	}
+
+	if rowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "SWIFT code not added"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": fmt.Sprintf("Successfully added SWIFT code: %s", newSwiftCode.SwiftCode),
+	})
+
+}
+
+func (h *DbHandler) DeleteSwiftCode(c *gin.Context) {
+	fmt.Println("***REQUEST RECEIVED***")
+	swiftcode := c.Param("swiftcode")
+
+	// Query row with matching swiftcode
+	result, err := h.DB.Exec("DELETE FROM swift_codes WHERE swiftcode=?", swiftcode)
+	if err != nil {
+		fmt.Printf("Database error for swift_codes :%v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		fmt.Printf("Error getting rows affected: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+		return
+	}
+
+	if rowsAffected == 0 {
+		// No rows were deleted - the SWIFT code wasn't found
+		c.JSON(http.StatusNotFound, gin.H{"error": "SWIFT code not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": fmt.Sprintf("Successfully deleted SWIFT code: %s", swiftcode),
+	})
 
 }

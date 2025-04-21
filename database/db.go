@@ -52,8 +52,8 @@ func ConnectDatabase() (db *sql.DB, err error) {
 	cfg.User = os.Getenv("DBUSER")
 	cfg.Passwd = os.Getenv("DBPASS")
 	cfg.Net = "tcp"
-	cfg.Addr = "127.0.0.1:3306"
-	cfg.DBName = "v1" // dbname
+	cfg.Addr = "127.0.0.1:3306" // db connection address:port
+	cfg.DBName = "v1"           // dbname
 
 	// Get a database handle.
 	db, err = sql.Open("mysql", cfg.FormatDSN())

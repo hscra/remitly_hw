@@ -34,6 +34,7 @@ The `database/sql` package you’ll be using includes types and functions for co
 1. Install driver `go get -u github.com/go-sql-driver/mysql`
 2. Go MySQL Driver is an implementation of Go's `database/sql/driver`interface. You only need to import the driver and can use the full `database/sql` API then.
 3. Set `DBUSER` and `DBPASS` to login your database.
+4. `cfg.Addr = "127.0.0.1:3306"` Need to check your port is correct for `3306` of MYSQL.
 
 ```shell
 $ export DBUSER=username
@@ -57,3 +58,6 @@ $ export DBPASS=password
 - Call `Context.IndentedJSON` to serialize the struct into JSON and add it to the response.
 
 - [parameters in path](https://gin-gonic.com/en/docs/examples/param-in-path/)
+
+- for POST example
+  ![alt text](image.png)
