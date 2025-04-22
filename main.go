@@ -149,7 +149,9 @@ func main() {
 	swiftcodeHandler := handlers.SwiftCodeHandler(db)
 	router := gin.Default()
 
-	router.GET("/v1/swift_codes/:swiftcode", swiftcodeHandler.GetDetailsOfSingleSwiftcode)
+	router.GET("/v1/swift_codes/:swiftcode", func(c *gin.Context) {
+		swiftcodeHandler.GetDetailsOfSingleSwiftcode(c)
+	})
 	router.GET("/v1/swift_codes/country/:countryiso2code", swiftcodeHandler.ReturnAllSwiftCodesCountry)
 	router.POST("/v1/:swift_codes", swiftcodeHandler.AddSwiftCodeToCountry)
 	router.DELETE("/v1/swift_codes/:swiftcode", swiftcodeHandler.DeleteSwiftCode)
