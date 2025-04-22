@@ -64,6 +64,7 @@ $ export DBPASS=<your password>
 
 - Example
   ![alt text](result_cap/endpoint1.png)
+  ![alt text](result_cap/endpoint1_1.png)
 
 #### Endpoint 2
 
