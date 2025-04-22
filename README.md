@@ -1,4 +1,4 @@
-# Remitly_HeesungKim
+# Remitly_Heesung Kim
 
 ## Environment for programming
 
@@ -19,32 +19,74 @@ Container : Docker (Docker-compose)
 
 ## Set up database
 
-The `database/sql` package you’ll be using includes types and functions for connecting to databases, executing transactions, canceling an operation in progress, and more
+- Implemented `swiftcode/database/` directory
+
+- After parsing successfully, store it into `v1/siwft_codes` database.
+
+- To create the `swift_codes` table, connect to database by code will be completed by `func ConnectDatabase() (db *sql.DB, err error)`.
+
+**IMPORTANT NOTICE** Following command will be required to run this application from your side.
+
+```shell
+$ export DBUSER=<your user name>
+$ export DBPASS=<your password>
+```
+
+- `func CreateSwiftCodesTable(db *sql.DB)` will operating to create table. Next, `func InsertSwiftCodes(db *sql.DB, sc SwiftcodeData)` will be able to insert parsed CSV into designated database table `swift_cdoes`
+
+- The `database/sql` package you’ll be using includes types and functions for connecting to databases , executing transactions, canceling an operation in progress, and more
 
 1. Install driver `go get -u github.com/go-sql-driver/mysql`
-2. Go MySQL Driver is an implementation of Go's `database/sql/driver`interface. You only need to import the driver and can use the full `database/sql` API then.
+2. `Go MySQL Driver` is an implementation of Go's `database/sql/driver`interface. You only need to import the driver and can use the full `database/sql` API then.
 3. Set `DBUSER` and `DBPASS` to login your database.
 4. `cfg.Addr = "127.0.0.1:3306"` Need to check your port is correct for `3306` of MYSQL.
 
-```shell
-$ export DBUSER=username
-$ export DBPASS=password
-```
-
 ## RESTful API
 
-- `gin.Context` is the most important part of Gin. It carries request details, validates and serializes JSON, and more. (Despite the similar name, this is different from Go’s built-in `context` package.)
+- Worked in `swiftcode/handlers/` directory
 
-- Call `Context.IndentedJSON` to serialize the struct into JSON and add it to the response.
+#### Endpoint 1
 
-- [parameters in path](https://gin-gonic.com/en/docs/examples/param-in-path/)
+- For Endpoint 1 ,`GET: /v1/swift-codes/{swift-code}:` , implemented in `GetDetailsOfSingleSwiftcode` function. The key point is that it should check whether the given swiftcode will be headquarter or branch. By checking it with `strings.Contains(swiftcode, "XXX")`, following logic will be differ. If it is headquarter, the query iterates over database by `rows.Next()`, which will be stored in array of `[]Branches SwiftCodeData ` structure.
 
-- for POST example
-  ![alt text](RESTful_POST_ex.png)
-  ![alt text](QueryResult_POST.png)
+- Example
+  ![alt text](result_cap/endpoint1.png)
+
+#### Endpoint 2
+
+- `GET: /v1/swift-codes/country/{countryISO2code}:` , implemented in `func (h *DbHandler) ReturnAllSwiftCodesCountry(c *gin.Context)` function.
+
+- By applying `countryISO2code` parameter with struct `SwiftCodeSummary` that will be utilized to store the reterive data. By set the `countryResponse` structure, it can be better to construct JSON output.
+
+- Example
+  ![alt text](result_cap/endpoint2.png)
+
+#### Endpoint 3
+
+- `POST: /v1/swift-codes:` to post it , `func (h *DbHandler) AddSwiftCodeToCountry(c *gin.Context)` will help to do it. By applying `c.BindJSON()` it will attach to the user input into JSON format.
+
+- Then, `INSERT INTO swift_cdes VALUES () ` query by using `NewSwiftCode` structure.
+
+- By checking `Rows.Affected()` , it will help to recognize the query works correctly.
+
+- Captured POST example
+  ![alt text](result_cap/RESTful_POST_ex.png)
+  ![alt text](result_cap/QueryResult_POST.png)
+
+#### Endpoint 4
+
+- `DELETE: /v1/swift-codes/{swift-code}` will successfully conducted by `func (h *DbHandler) DeleteSwiftCode(c *gin.Context)`.
+
+- As a parameter , `swiftcode` , will be key to which rows in database will be removed. Of course, `Rows.Affected()` will check the query works that the program intended for.
+
+- Example
+  ![alt text](result_cap/endpoint4.png)
+  ![alt text](result_cap/endpoint4_1.png)
 
 ## Testing
 
+- Checked parsing csv correctly `swiftcode/database/db_test.go`
+- Checked RESTful api endpoints `swiftcode/handlers/api_test.go`
 - By `testing` package , it can run `go test` under the dicretory with command on the terminal
 - Ending file name wiht `_test.go` will be configured by GO.
 
@@ -53,6 +95,10 @@ $ export DBPASS=password
 - A `chan` (short for channel) is a communication mechanism that allows goroutines (lightweight threads) to communicate with each other and synchronize their execution.
 
 - By `"fmt"` package [fmt](https://pkg.go.dev/fmt) with placeholder parameters
+
+- `gin.Context` carries request details, validates and serializes JSON. By `*gin.Context.JSON()` will serialize the reterive data.
+
+- [parameters in path of gin](https://gin-gonic.com/en/docs/examples/param-in-path/)
 
 ## References
 
@@ -78,4 +124,9 @@ Need to install `go get -u github.com/gin-gonic/gin` to use gin web framework\
 [ref12](https://go.dev/doc/tutorial/web-service-gin#write-the-code) - Step by step to RESTful API for GO
 
 **Testing**\
-[ref13](https://go.dev/doc/tutorial/add-a-test) : Reference to built-in go unit test
+[ref13](https://go.dev/doc/tutorial/add-a-test) : Reference to built-in go unit test\
+[ref14](https://dev.to/sha254/testing-rest-apis-in-go-a-guide-to-unit-and-integration-testing-with-gos-standard-testing-library-2o9l) - How to invoke test data setup
+
+**Container**\
+[ref15](https://docs.docker.com/compose/intro/features-uses/) - Docker compose\
+[ref16](https://docs.docker.com/build/concepts/dockerfile/) - Building dockerfile

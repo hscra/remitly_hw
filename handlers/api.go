@@ -91,7 +91,6 @@ func (h *DbHandler) GetDetailsOfSingleSwiftcode(c *gin.Context) SwiftCodeData {
 		if err != nil {
 			fmt.Printf("Error to query branches : %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error to query"})
-			// return
 		}
 		defer rows.Close()
 

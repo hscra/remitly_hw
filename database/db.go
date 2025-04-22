@@ -144,5 +144,4 @@ func InsertSwiftCodes(db *sql.DB, sc SwiftcodeData) {
 	if err != nil {
 		log.Fatalf("Error %s when finding rows affected\n", err)
 	}
-	// log.Println("%d swiftcodes created\n")
 }
