@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"database/sql"
 	"encoding/csv"
 	"fmt"
@@ -156,114 +155,5 @@ func main() {
 	router.DELETE("/v1/swift_codes/:swiftcode", swiftcodeHandler.DeleteSwiftCode)
 
 	router.Run("localhost:8080")
-
-}
-
-func insertSwiftCodes(db *sql.DB, sc SwiftcodeData) {
-	query := `
-	INSERT INTO swift_codes (
-		countryiso2code,
-		swiftcode,
-		codetype,
-		name,
-		address,
-		townname,
-		countryname,
-		timezone
-		)
-		VALUES (?,?,?,?,?,?,?,?)
-	`
-
-	ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancelfunc()
-	stmt, err := db.PrepareContext(ctx, query)
-	if err != nil {
-		log.Fatalf("Error %s when preparing SQL query\n", err)
-	}
-	defer stmt.Close()
-
-	res, err := stmt.ExecContext(
-		ctx,
-		sc.CountryIso2Code,
-		sc.SwiftCode,
-		sc.CodeType,
-		sc.Name,
-		sc.Address,
-		sc.TownName,
-		sc.CountryName,
-		sc.TimeZone,
-	)
-	if err != nil {
-		log.Fatalf("Error %s when inserting row into table\n", err)
-	}
-	rows, err := res.RowsAffected()
-	if err != nil {
-		log.Fatalf("Error %s when finding rows affected\n", err)
-	}
-	log.Printf("%d swiftcodes created\n", rows)
-}
-
-func createSwiftCodesTable(db *sql.DB) {
-	createTableQuery := `
-		CREATE TABLE IF NOT EXISTS swift_codes(
-			id INT AUTO_INCREMENT PRIMARY KEY,
-			countryiso2code VARCHAR(255) NOT NULL,
-			swiftcode VARCHAR(255) UNIQUE NOT NULL,
-			codetype VARCHAR(255),
-			name VARCHAR(255),
-			address VARCHAR(255),
-			townname VARCHAR(255),
-			countryname VARCHAR(255),
-			timezone VARCHAR(255)
-		);
-	`
-	ctx, cancelfunc := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancelfunc()
-	_, err := db.ExecContext(ctx, createTableQuery)
-	if err != nil {
-		log.Fatalf("Error creating table :%v", err)
-	}
-
-	fmt.Println("Table 'swift_codes' created successfully (if it didn't exist).")
-}
-
-// func getAlllocations(id float64)([]Location,error){
-// 	var locations []Location
-
-// 	rows, err := db.Query("SELECT * FROM locations")
-// 	if err != nil {
-// 		return nil, fmt.Errorf("rows %q,error %v",id,err)
-// 	}
-// 	defer rows.Close()
-
-// loop through rows, using Scan to assign column data to struct fields
-// 	for rows.Next(){
-// 		var lc Location
-// 		if err:= rows.Scan(&lc.Id,&lc.lat,&lc.lng); err != nil{
-// 			return nil, fmt.Errorf("rows %q, error %v",id,err)
-
-// 		}
-// 		locations= append(locations, lc)
-// 	}
-// 	if err := rows.Err(); err != nil {
-// 		return nil, fmt.Errorf("rows %q , error %v", id, err)
-// 	}
-// 	return locations, nil
-// }
-
-func readFromCSV(file *os.File, c chan SwiftcodeData) {
-	// Set a pipe as the demiliter for reading
-	gocsv.SetCSVReader(func(in io.Reader) gocsv.CSVReader {
-		r := csv.NewReader(in)
-		r.Comma = ','
-		return r
-	})
-
-	go func() {
-		err := gocsv.UnmarshalToChan(file, c)
-		if err != nil {
-			panic(err)
-		}
-	}()
 
 }
