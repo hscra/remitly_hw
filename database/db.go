@@ -29,12 +29,12 @@ type SwiftcodeData struct {
 
 // var db *sql.DB
 
-func ReadFromCSV(file *os.File, c chan SwiftcodeData) {
-
+func ReadFromCSV(file *os.File, c chan SwiftcodeData) error {
 	// Set a pipe as the demiliter for reading
 	gocsv.SetCSVReader(func(in io.Reader) gocsv.CSVReader {
 		r := csv.NewReader(in)
 		r.Comma = ','
+
 		return r
 	})
 
@@ -44,6 +44,8 @@ func ReadFromCSV(file *os.File, c chan SwiftcodeData) {
 			panic(err)
 		}
 	}()
+
+	return nil
 }
 
 func ConnectDatabase() (db *sql.DB, err error) {
@@ -58,12 +60,15 @@ func ConnectDatabase() (db *sql.DB, err error) {
 	// Get a database handle.
 	db, err = sql.Open("mysql", cfg.FormatDSN())
 	if err != nil {
+		fmt.Println("Failed to open your mysql database. Please check your environment set of DBUSER, DBPASS")
 		log.Fatal(err)
 	}
 
 	pingErr := db.Ping()
 	if pingErr != nil {
+		fmt.Println("Failed to ping() check for your db connection")
 		panic(pingErr)
+
 	}
 	fmt.Printf(("Connected!\n"))
 
