@@ -70,7 +70,7 @@ func ConnectDatabase() (db *sql.DB, err error) {
 		panic(pingErr)
 
 	}
-	fmt.Printf(("Connected!\n"))
+	fmt.Printf(("Database connected!\n"))
 
 	db.SetConnMaxLifetime(time.Minute * 3)
 	db.SetMaxOpenConns(10)

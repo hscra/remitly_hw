@@ -6,6 +6,18 @@ Database: MYSQL 8.0.35
 Language : go version go1.22.5 darwin/amd64
 Endpoint API check : Postman
 
+### Fundamental
+
+- `go run .` useful command to compile and run program, but not build to binary file.
+- `go build` complile the packages,
+- `go install` compiles and installs the packages
+
+- After `go build` and run with `./<filename>`
+
+### Placeholder
+
+- By `"fmt"` package [fmt](https://pkg.go.dev/fmt)
+
 ### Parsing
 
 [ref1](https://shaileshb.hashnode.dev/go-csv-parsing) \
@@ -61,3 +73,10 @@ $ export DBPASS=password
 
 - for POST example
   ![alt text](image.png)
+  ![alt text](image-1.png)
+
+### Unit testing
+
+- [ref_1](https://go.dev/doc/tutorial/add-a-test) : reference to built-in go unit test
+- By `testing` package , it can run `go test` under the dicretory with command on the terminal
+- Ending file name wiht `_test.go` will be configured by GO.

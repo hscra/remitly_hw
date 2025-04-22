@@ -50,7 +50,7 @@ func SwiftCodeHandler(db *sql.DB) *DbHandler {
 	return &DbHandler{DB: db}
 }
 
-func (h *DbHandler) GetDetailsOfSingleSwiftcode(c *gin.Context) {
+func (h *DbHandler) GetDetailsOfSingleSwiftcode(c *gin.Context) SwiftCodeData {
 	fmt.Println("***REQUEST RECEIVED***")
 	swiftcode := c.Param("swiftcode")
 
@@ -68,11 +68,11 @@ func (h *DbHandler) GetDetailsOfSingleSwiftcode(c *gin.Context) {
 	if err != nil {
 		if err == sql.ErrNoRows {
 			c.JSON(http.StatusNotFound, gin.H{"error": "SWIFT code not found"})
-			return
+			return SwiftCodeData{}
 		}
 		fmt.Printf("Database error for swiftcode %s: %v\n", swiftcode, err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
-		return
+		return SwiftCodeData{}
 	}
 
 	// check swiftcode whether it indicates headquarter
@@ -91,7 +91,7 @@ func (h *DbHandler) GetDetailsOfSingleSwiftcode(c *gin.Context) {
 		if err != nil {
 			fmt.Printf("Error to query branches : %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error to query"})
-			return
+			// return
 		}
 		defer rows.Close()
 
@@ -111,17 +111,13 @@ func (h *DbHandler) GetDetailsOfSingleSwiftcode(c *gin.Context) {
 		}
 
 		c.JSON(http.StatusOK, completeResponse)
+		return completeResponse
 
 	} else { // branch
 
-		c.JSON(http.StatusOK, gin.H{
-			"address":       sc.Address,
-			"bankName":      sc.Name,
-			"countryISO2":   sc.Countryiso2code,
-			"countryName":   sc.Countryname,
-			"isHeadquarter": false,
-			"siwftCode":     sc.Swiftcode,
-		})
+		c.JSON(http.StatusOK, completeResponse)
+		return completeResponse
+
 	}
 }
 
