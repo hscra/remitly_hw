@@ -9,23 +9,36 @@ Container : Docker (Docker-compose)
 
 ## Fundamental
 
-- `go run .` useful command to compile and run program, but not build to binary file.
-- `go build` complile the packages,
+- If you want to download all this `https://github.com/hscra/remitly_hw.git` repository, please make your own working directory (ex.swiftcode/). Then, download it into your working directory.
+- Step to run the application will be :
+
+```shell
+$ git clone https://github.com/hscra/remitly_hw.git
+$ cd swiftcode          # or cd <your module> if you have
+$ go mod tidy
+$ go run main.go        # or whatever entry point file you have
+```
+
+- `go run .` useful command to compile and run program, but not build to binary file. For this repository, you can run `go
+- `go build` complile the packages if you want.
 - After `go build` and run with `./<filename>`
 
 ## Parsing
 
--
+- By using `chan` with given csv file, first openfile will be run to forward parsing stage.
+- Call `database.ReadFromCSV(file, chan)` function to streming csv data into a channel.
+- `gocsv.UnmarshalToChan(file, c)` will reads from CSV and sends parsed `SwiftcodeData` values into channel `c`
 
 ## Set up database
 
-- Implemented `swiftcode/database/` directory
+- Implemented `/database` directory
 
 - After parsing successfully, store it into `v1/siwft_codes` database.
 
-- To create the `swift_codes` table, connect to database by code will be completed by `func ConnectDatabase() (db *sql.DB, err error)`.
+- To create the `swift_codes` table, connect to database will be completed by `func ConnectDatabase() (db *sql.DB, err error)`.
 
-**IMPORTANT NOTICE** Following command will be required to run this application from your side.
+**IMPORTANT NOTICE** \
+Following command will be required to run this application from your side.
 
 ```shell
 $ export DBUSER=<your user name>
@@ -43,7 +56,7 @@ $ export DBPASS=<your password>
 
 ## RESTful API
 
-- Worked in `swiftcode/handlers/` directory
+- Worked in `handlers/` directory
 
 #### Endpoint 1
 
@@ -124,7 +137,7 @@ Need to install `go get -u github.com/gin-gonic/gin` to use gin web framework\
 [ref12](https://go.dev/doc/tutorial/web-service-gin#write-the-code) - Step by step to RESTful API for GO
 
 **Testing**\
-[ref13](https://go.dev/doc/tutorial/add-a-test) : Reference to built-in go unit test\
+[ref13](https://go.dev/doc/tutorial/add-a-test) - Reference to built-in go unit test\
 [ref14](https://dev.to/sha254/testing-rest-apis-in-go-a-guide-to-unit-and-integration-testing-with-gos-standard-testing-library-2o9l) - How to invoke test data setup
 
 **Container**\

@@ -41,7 +41,7 @@ func ReadFromCSV(file *os.File, c chan SwiftcodeData) error {
 	go func() {
 		err := gocsv.UnmarshalToChan(file, c)
 		if err != nil {
-			panic(err)
+			log.Printf("error unmarshalling CSV: %v", err)
 		}
 	}()
 

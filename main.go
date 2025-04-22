@@ -24,19 +24,18 @@ type SwiftcodeData struct {
 }
 
 func main() {
-	// Read CSV file
+	// Read file to parsing csv
 	now := time.Now()
 	readChannel := make(chan database.SwiftcodeData, 1)
 	readFilePath := "swiftcode.csv"
 	readFile, err := os.OpenFile(readFilePath, os.O_RDONLY, os.ModePerm)
 	if err != nil {
-		panic(err)
+		log.Fatalf("failed to open file at path %s: %v", readFilePath, err)
 	}
 	defer readFile.Close()
 	database.ReadFromCSV(readFile, readChannel)
 
 	cnt := 0
-
 	fmt.Println(time.Since(now), cnt)
 
 	// Database connection
@@ -49,6 +48,7 @@ func main() {
 	// Create swift_cdoes table
 	database.CreateSwiftCodesTable(db)
 
+	// Insert parsed csv into database
 	for swiftcode := range readChannel {
 		database.InsertSwiftCodes(db, swiftcode)
 		if err != nil {
