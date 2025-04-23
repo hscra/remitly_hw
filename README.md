@@ -46,6 +46,7 @@ $ go run main.go        # or whatever entry point file you have
 
 ## Parsing
 
+- Worked in `main.go` and `db.go` files.
 - By using `chan` with given csv file, first openfile will be run to forward parsing stage.
 - Call `database.ReadFromCSV(file, chan)` function to streming csv data into a channel.
 - `gocsv.UnmarshalToChan(file, c)` will reads from CSV and sends parsed `SwiftcodeData` values into channel `c`
