@@ -9,6 +9,25 @@ Container : Docker (Docker-compose)
 
 ## Fundamental
 
+1. Using docker
+
+- Initiate your wokring directory such as `swiftcode/`
+- Please download `$ git clone https://github.com/hscra/remitly_hw.git` in it
+- Compose the `yml` file to build the containers. Please run `$ docker compose up --build`. If you port `:3306` already running on your local machine, please turn off for this setup.
+- After you completely build it, checks if it is works well by `$ docker ps`
+
+```shell
+$ git clone https://github.com/hscra/remitly_hw.git
+$ cd swiftcode          # or cd <your module> if you have
+$ docker compose up --build
+$ docker ps             # check it works correctly
+$ docker compose stop   # If you want to stop the container
+```
+
+- Quick check to endpoints if docker works corectly by `curl http://localhost:8080/v1/swift_codes/BCECCLRMXXX`
+
+2. Using source code in terminal
+
 - If you want to download all this `https://github.com/hscra/remitly_hw.git` repository, please make your own working directory (ex.swiftcode/). Then, download it into your working directory.
 - Step to run the application will be :
 
@@ -19,6 +38,7 @@ $ go mod tidy
 $ go run main.go        # or whatever entry point file you have
 ```
 
+- Pleaes check your local mysql database server is running. Please also below **IMPORTANT NOTICE** to set the env for database credential.
 - `go run .` useful command to compile and run program, but not build to binary file. For this repository, you can run `go
 - `go build` complile the packages if you want.
 - After `go build` and run with `./<filename>`
@@ -143,4 +163,7 @@ Need to install `go get -u github.com/gin-gonic/gin` to use gin web framework\
 
 **Container**\
 [ref15](https://docs.docker.com/compose/intro/features-uses/) - Docker compose\
-[ref16](https://docs.docker.com/build/concepts/dockerfile/) - Building dockerfile
+[ref16](https://docs.docker.com/build/concepts/dockerfile/) - Building dockerfile\
+[ref17](https://dev.to/goodylili/how-to-deploy-go-applications-with-docker-50n3) - Example of containerzing in golang(from step3a) \
+[ref18](https://docs.docker.com/guides/golang/) - Focus on golang docker doc\
+[ref19](https://betterstack.com/community/guides/scaling-go/dockerize-golang/#step-5-orchestrating-multiple-containers-with-docker-compose) - Include `.dockerignore` to avoid installl unnecessary files

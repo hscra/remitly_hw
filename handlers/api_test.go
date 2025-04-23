@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetSwiftCodeUsingRealDB(t *testing.T) {
+func TestGetSwiftCodeBranchUsingRealDb(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	cfg := mysql.NewConfig()
@@ -45,30 +45,130 @@ func TestGetSwiftCodeUsingRealDB(t *testing.T) {
 	handler := &DbHandler{DB: db}
 
 	router := gin.Default()
-	router.GET("/swiftcode/:swiftcode", func(c *gin.Context) {
+	router.GET("v1/swift_codes/:swiftcode", func(c *gin.Context) {
 		handler.GetDetailsOfSingleSwiftcode(c)
 	})
 
-	req, _ := http.NewRequest("GET", "/swiftcode/TPEOPLPWAAS", nil)
-	w := httptest.NewRecorder()
+	t.Run("Swifcode(headquarter) not empty", func(t *testing.T) {
+		req, _ := http.NewRequest("GET", "/v1/swift_codes/BCECCLRMXXX", nil)
+		w := httptest.NewRecorder()
 
-	router.ServeHTTP(w, req)
+		router.ServeHTTP(w, req)
 
-	assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, http.StatusOK, w.Code)
 
-	var actual SwiftCodeData
-	err = json.Unmarshal(w.Body.Bytes(), &actual)
-	assert.NoError(t, err)
+		var actual SwiftCodeData
+		err = json.Unmarshal(w.Body.Bytes(), &actual)
+		assert.NoError(t, err)
 
-	expected := SwiftCodeData{
-		Address:         "FOREST ZUBRA 1, FLOOR 1 WARSZAWA, MAZOWIECKIE, 01-066",
-		Name:            "PEKAO TOWARZYSTWO FUNDUSZY  INWESTYCYJNYCH SPOLKA AKCYJNA",
-		Countryiso2code: "PL",
-		Countryname:     "POLAND",
-		Swiftcode:       "TPEOPLPWAAS",
-		IsHeadquarter:   false,
-	}
-	assert.Equal(t, expected, actual)
+		// Assert headquarter properties
+		assert.NotEmpty(t, actual.Address)
+		assert.NotEmpty(t, actual.Name)
+		assert.NotEmpty(t, actual.Countryiso2code)
+		assert.NotEmpty(t, actual.Countryname)
+		assert.True(t, actual.IsHeadquarter)
+		assert.NotEmpty(t, actual.Swiftcode)
+
+		// Assert branches
+		assert.NotEmpty(t, actual.Branches, "Headquarter should have branches")
+
+		if len(actual.Branches) > 0 {
+			firstBranch := actual.Branches[0]
+			assert.NotEmpty(t, firstBranch.Address)
+			assert.NotEmpty(t, firstBranch.Name)
+			assert.NotEmpty(t, firstBranch.Countryiso2code)
+			assert.False(t, firstBranch.IsHeadquarter)
+			assert.NotEmpty(t, firstBranch.Swiftcode)
+		}
+	})
+
+	t.Run("Swiftcode(headquarter) equal value", func(t *testing.T) {
+		// Use the known headquarters Swift code
+		req, _ := http.NewRequest("GET", "/v1/swift_codes/BCECCLRMXXX", nil)
+		w := httptest.NewRecorder()
+
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var actual SwiftCodeData
+		err = json.Unmarshal(w.Body.Bytes(), &actual)
+		assert.NoError(t, err)
+
+		// Create the expected response structure
+		expected := SwiftCodeData{
+			Address:         "  ",
+			Name:            "BANCO CENTRAL DE CHILE",
+			Countryiso2code: "CL",
+			Countryname:     "CHILE",
+			IsHeadquarter:   true,
+			Swiftcode:       "BCECCLRMXXX",
+			Branches: []SwiftCodeData{
+				{
+					Address:         "  ",
+					Name:            "BANCO CENTRAL DE CHILE",
+					Countryiso2code: "CL",
+					Countryname:     "CHILE",
+					IsHeadquarter:   false,
+					Swiftcode:       "BCECCLRMCSH",
+				},
+				{
+					Address:         "  ",
+					Name:            "BANCO CENTRAL DE CHILE",
+					Countryiso2code: "CL",
+					Countryname:     "CHILE",
+					IsHeadquarter:   false,
+					Swiftcode:       "BCECCLRMFCE",
+				},
+				{
+					Address:         "  ",
+					Name:            "BANCO CENTRAL DE CHILE",
+					Countryiso2code: "CL",
+					Countryname:     "CHILE",
+					IsHeadquarter:   false,
+					Swiftcode:       "BCECCLRMFES",
+				},
+				{
+					Address:         "  ",
+					Name:            "BANCO CENTRAL DE CHILE",
+					Countryiso2code: "CL",
+					Countryname:     "CHILE",
+					IsHeadquarter:   false,
+					Swiftcode:       "BCECCLRMFRP",
+				},
+			},
+		}
+
+		// Compare the entire structure
+		assert.Equal(t, expected, actual)
+	})
+
+	t.Run("Swiftcode(branch)", func(t *testing.T) {
+
+		req, _ := http.NewRequest("GET", "/v1/swift_codes/TPEOPLPWAAS", nil)
+		w := httptest.NewRecorder()
+
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var actual SwiftCodeData
+		err = json.Unmarshal(w.Body.Bytes(), &actual)
+		assert.NoError(t, err)
+
+		expected := SwiftCodeData{
+			Address:         "FOREST ZUBRA 1, FLOOR 1 WARSZAWA, MAZOWIECKIE, 01-066",
+			Name:            "PEKAO TOWARZYSTWO FUNDUSZY  INWESTYCYJNYCH SPOLKA AKCYJNA",
+			Countryiso2code: "PL",
+			Countryname:     "POLAND",
+			Swiftcode:       "TPEOPLPWAAS",
+			IsHeadquarter:   false,
+		}
+		assert.Equal(t, expected, actual)
+	})
+
+	// TODO endpoint 2 , 3 and 4
+
 }
 
 func TestGetInfoSwiftCodeUsingMockDB(t *testing.T) {
@@ -120,11 +220,11 @@ func TestGetInfoSwiftCodeUsingMockDB(t *testing.T) {
 			handler := &DbHandler{DB: db}
 
 			router := gin.New()
-			router.GET("/swiftcode/:swiftcode", func(c *gin.Context) {
+			router.GET("/v1/swift_codes/:swiftcode", func(c *gin.Context) {
 				handler.GetDetailsOfSingleSwiftcode(c)
 			})
 
-			req, _ := http.NewRequest("GET", "/swiftcode/"+tt.swiftcode, nil)
+			req, _ := http.NewRequest("GET", "/v1/swift_codes/"+tt.swiftcode, nil)
 			w := httptest.NewRecorder()
 
 			router.ServeHTTP(w, req)

@@ -51,11 +51,12 @@ func ReadFromCSV(file *os.File, c chan SwiftcodeData) error {
 func ConnectDatabase() (db *sql.DB, err error) {
 	// Capture connection properties
 	cfg := mysql.NewConfig()
-	cfg.User = os.Getenv("DBUSER")
-	cfg.Passwd = os.Getenv("DBPASS")
+	cfg.User = os.Getenv("DB_USER")
+	cfg.Passwd = os.Getenv("DB_PASSWORD")
 	cfg.Net = "tcp"
-	cfg.Addr = "127.0.0.1:3306" // db connection address:port
-	cfg.DBName = "v1"           // dbname
+	// cfg.Addr = "127.0.0.1:3306" // db connection address:port
+	cfg.Addr = os.Getenv("DB_HOST") + ":" + os.Getenv("DB_PORT") // docker db address
+	cfg.DBName = os.Getenv("DB_NAME")                            // dbname
 
 	// Get a database handle.
 	db, err = sql.Open("mysql", cfg.FormatDSN())

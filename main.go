@@ -67,6 +67,7 @@ func main() {
 	router.POST("/v1/:swift_codes", swiftcodeHandler.AddSwiftCodeToCountry)
 	router.DELETE("/v1/swift_codes/:swiftcode", swiftcodeHandler.DeleteSwiftCode)
 
-	router.Run("localhost:8080")
+	// router.Run("localhost:8080")
+	router.Run(":8080")
 
 }
