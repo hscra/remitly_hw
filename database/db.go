@@ -27,7 +27,19 @@ type SwiftcodeData struct {
 	TimeZone        string `csv:"TIME ZONE"`
 }
 
-// var db *sql.DB
+func Init() chan SwiftcodeData {
+	// Read file to parsing csv
+	readChannel := make(chan SwiftcodeData, 1)
+	readFilePath := "swiftcode.csv"
+	readFile, err := os.OpenFile(readFilePath, os.O_RDONLY, os.ModePerm)
+	if err != nil {
+		log.Fatalf("failed to open file at path %s: %v", readFilePath, err)
+	}
+	go func() {
+		ReadFromCSV(readFile, readChannel)
+	}()
+	return readChannel
+}
 
 func ReadFromCSV(file *os.File, c chan SwiftcodeData) error {
 	// Set a pipe as the demiliter for reading

@@ -1,10 +1,7 @@
 package main
 
 import (
-	"fmt"
 	"log"
-	"os"
-	"time"
 
 	"swiftcode/database"
 	"swiftcode/handlers"
@@ -12,31 +9,9 @@ import (
 	"github.com/gin-gonic/gin" // gin framework
 )
 
-type SwiftcodeData struct {
-	CountryIso2Code string `csv:"COUNTRY ISO2 CODE"`
-	SwiftCode       string `csv:"SWIFT CODE"`
-	CodeType        string `csv:"CODE TYPE"`
-	Name            string `csv:"NAME"`
-	Address         string `csv:"ADDRESS"`
-	TownName        string `csv:"TOWN NAME"`
-	CountryName     string `csv:"COUNTRY NAME"`
-	TimeZone        string `csv:"TIME ZONE"`
-}
-
 func main() {
-	// Read file to parsing csv
-	now := time.Now()
-	readChannel := make(chan database.SwiftcodeData, 1)
-	readFilePath := "swiftcode.csv"
-	readFile, err := os.OpenFile(readFilePath, os.O_RDONLY, os.ModePerm)
-	if err != nil {
-		log.Fatalf("failed to open file at path %s: %v", readFilePath, err)
-	}
-	defer readFile.Close()
-	database.ReadFromCSV(readFile, readChannel)
-
-	cnt := 0
-	fmt.Println(time.Since(now), cnt)
+	// Initiation channel
+	readChannel := database.Init()
 
 	// Database connection
 	db, err := database.ConnectDatabase()
@@ -70,7 +45,6 @@ func main() {
 	router.POST("/v1/:swift_codes", swiftcodeHandler.AddSwiftCodeToCountry)
 	router.DELETE("/v1/swift_codes/:swiftcode", swiftcodeHandler.DeleteSwiftCode)
 
-	// router.Run("localhost:8080")
 	router.Run(":8080")
 
 }
