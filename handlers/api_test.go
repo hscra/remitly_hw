@@ -20,10 +20,10 @@ func TestGetSwiftCodeBranchUsingRealDb(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	cfg := mysql.NewConfig()
-	cfg.User = os.Getenv("DBUSER")
-	cfg.Passwd = os.Getenv("DBPASS")
+	cfg.User = os.Getenv("DB_USER")
+	cfg.Passwd = os.Getenv("DB_PASSWORD")
 	cfg.Net = "tcp"
-	cfg.Addr = "127.0.0.1:3306" // db connection address:port
+	cfg.Addr = "127.0.0.1:3306" // db connection localhost:port
 	cfg.DBName = "v1"           // dbname
 
 	var db *sql.DB
@@ -39,7 +39,6 @@ func TestGetSwiftCodeBranchUsingRealDb(t *testing.T) {
 	if pingErr != nil {
 		fmt.Println("Failed to ping() check for your db connection")
 		panic(pingErr)
-
 	}
 
 	handler := &DbHandler{DB: db}
@@ -167,7 +166,77 @@ func TestGetSwiftCodeBranchUsingRealDb(t *testing.T) {
 		assert.Equal(t, expected, actual)
 	})
 
-	// TODO endpoint 2 , 3 and 4
+}
+
+func TestReturnAllSwiftCodesByCountry(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+
+	cfg := mysql.NewConfig()
+	cfg.User = os.Getenv("DB_USER")
+	cfg.Passwd = os.Getenv("DB_PASSWORD")
+	cfg.Net = "tcp"
+	cfg.Addr = "127.0.0.1:3306" // db connection localhost:port
+	cfg.DBName = "v1"           // dbname
+
+	var db *sql.DB
+	var err error
+
+	db, err = sql.Open("mysql", cfg.FormatDSN())
+	if err != nil {
+		fmt.Println("Failed to open your mysql database. Please check your environment set of DBUSER, DBPASS")
+		log.Fatal(err)
+	}
+
+	pingErr := db.Ping()
+	if pingErr != nil {
+		fmt.Println("Failed to ping() check for your db connection")
+		panic(pingErr)
+	}
+
+	handler := &DbHandler{DB: db}
+
+	router := gin.Default()
+	router.GET("v1/swift_codes/country/:countryiso2code", func(c *gin.Context) {
+		handler.ReturnAllSwiftCodesCountry(c)
+	})
+
+	t.Run("Swiftcodes by countryISO2code", func(t *testing.T) {
+		req, _ := http.NewRequest("GET", "/v1/swift_codes/country/PL", nil) // sample
+		w := httptest.NewRecorder()
+
+		router.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusOK, w.Code)
+
+		var actual_country CountryResponse
+		err = json.Unmarshal(w.Body.Bytes(), &actual_country)
+		assert.NoError(t, err)
+
+		// Assert retreive properties
+		assert.NotEmpty(t, actual_country.Countryiso2code)
+		assert.NotEmpty(t, actual_country.Countryname)
+
+		// Assert Swiftcodes
+		assert.NotEmpty(t, actual_country.Swiftcodes, "List of swiftcodes")
+
+		if len(actual_country.Swiftcodes) > 0 {
+			first := actual_country.Swiftcodes[0]
+			if first.IsHeadquarter == false {
+				assert.NotEmpty(t, first.Address)
+				assert.NotEmpty(t, first.BankName)
+				assert.NotEmpty(t, first.Countryios2code)
+				assert.False(t, first.IsHeadquarter)
+				assert.NotEmpty(t, first.SwiftCode)
+
+			} else {
+				assert.NotEmpty(t, first.Address)
+				assert.NotEmpty(t, first.BankName)
+				assert.NotEmpty(t, first.Countryios2code)
+				assert.True(t, first.IsHeadquarter)
+				assert.NotEmpty(t, first.SwiftCode)
+			}
+		}
+	})
 
 }
 

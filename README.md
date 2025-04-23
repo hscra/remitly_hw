@@ -24,7 +24,8 @@ $ docker ps             # check it works correctly
 $ docker compose stop   # If you want to stop the container
 ```
 
-- Quick check to endpoints if docker works corectly by `curl http://localhost:8080/v1/swift_codes/BCECCLRMXXX`
+- Quick check to endpoints if docker works corectly by \
+  `curl http://localhost:8080/v1/swift_codes/BCECCLRMXXX`
 
 2. Using source code in terminal
 
@@ -58,7 +59,7 @@ $ go run main.go        # or whatever entry point file you have
 - To create the `swift_codes` table, connect to database will be completed by `func ConnectDatabase() (db *sql.DB, err error)`.
 
 **IMPORTANT NOTICE** \
-Following command will be required to run this application from your side.
+Following command will be required to run this application from your side (ONLY source code, not docker version).
 
 ```shell
 $ export DBUSER=<your user name>

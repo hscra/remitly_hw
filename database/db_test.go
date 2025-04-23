@@ -1,6 +1,7 @@
 package database
 
 import (
+	"database/sql"
 	"os"
 	"path/filepath"
 	"testing"
@@ -57,6 +58,57 @@ BG,ADCRBGS1XXX,BIC11,ADAMANT CAPITAL PARTNERS AD,"JAMES BOURCHIER BLVD 76A HILL 
 		if swiftcodes[1].SwiftCode != "ABIEBGS1XXX" {
 			t.Errorf("Expected swift code 'ABIEBGS1XXX', got '%s'", swiftcodes[1].SwiftCode)
 		}
+	})
+
+}
+
+func TestDatabaseIntegration(t *testing.T) {
+	// Database connection test
+	t.Run("DB connection test", func(t *testing.T) {
+		db, err := sql.Open("mysql", "root:password!@tcp(localhost:3306)/v1")
+		if err != nil {
+			t.Fatalf("Failed to open database: %v", err)
+		}
+		defer db.Close()
+
+		err = db.Ping()
+		if err != nil {
+			t.Fatalf("Failed to ping database : %v", err)
+		}
+	})
+
+	t.Run("Check table exists", func(t *testing.T) {
+		db, err := sql.Open("mysql", "root:password!@tcp(localhost:3306)/v1")
+		if err != nil {
+			t.Fatalf("Failed to open database: %v", err)
+		}
+		defer db.Close()
+
+		var swift_codes string
+		err = db.QueryRow("SHOW TABLES LIKE 'swift_codes'").Scan(&swift_codes)
+		if err != nil {
+			t.Fatalf("Failed to check if swift_codes table exists: %v", err)
+		}
+
+		if swift_codes != "swift_codes" {
+			t.Fatalf("Expected users table to exist")
+		}
+	})
+
+	t.Run("Check number of rows", func(t *testing.T) {
+		db, err := sql.Open("mysql", "root:password!@tcp(localhost:3306)/v1")
+		if err != nil {
+			t.Fatalf("Failed to open database: %v", err)
+		}
+		defer db.Close()
+
+		var count int
+		err = db.QueryRow("SELECT COUNT(*) FROM swift_codes").Scan(&count)
+		if err != nil {
+			t.Fatalf("Failed to count swift_codes: %v", err)
+		}
+
+		t.Logf("Found %d swift_codes in database", count)
 	})
 
 }

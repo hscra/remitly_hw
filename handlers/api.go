@@ -120,7 +120,7 @@ func (h *DbHandler) GetDetailsOfSingleSwiftcode(c *gin.Context) SwiftCodeData {
 	}
 }
 
-func (h *DbHandler) ReturnAllSwiftCodesCountry(c *gin.Context) {
+func (h *DbHandler) ReturnAllSwiftCodesCountry(c *gin.Context) CountryResponse {
 	fmt.Println("***REQUEST RECEIVED***")
 	countryISO2code := c.Param("countryiso2code")
 
@@ -132,7 +132,6 @@ func (h *DbHandler) ReturnAllSwiftCodesCountry(c *gin.Context) {
 	if err != nil {
 		fmt.Printf("Database error for swift_codes :%v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
-		return
 	}
 
 	defer rows.Close()
@@ -171,7 +170,7 @@ func (h *DbHandler) ReturnAllSwiftCodesCountry(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, countryResponse)
-
+	return countryResponse
 }
 
 func (h *DbHandler) AddSwiftCodeToCountry(c *gin.Context) {
